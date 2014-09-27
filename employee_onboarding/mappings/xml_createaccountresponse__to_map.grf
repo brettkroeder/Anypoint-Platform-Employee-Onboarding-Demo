@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="Administrator" created="Sat Apr 05 19:30:57 EDT 2014" description="Xml&lt;createAccountResponse&gt; To Map" guiVersion="3.4.3.P" id="1396741989476" licenseCode="Unlicensed" licenseType="Unknown" modified="Sat Apr 05 19:30:57 EDT 2014" modifiedBy="Administrator" name="Xml_createAccountResponse__To_Map" revision="1.0" showComponentDetails="false">
+<Global>
+<Metadata __index="0" __referenceCounter="1" __sourcePath="{http://tempuri.org/=ns0}/ns0:createAccountResponse" _dataStructure="OBJECT" _id="__id" _type="Input" id="73990cac-864e-4929-bcb3-1db0fa5782c7">
+<Record fieldDelimiter="," name="createAccountResponse" recordDelimiter="\n\\|\r\n\\|\r" type="delimited">
+<Field __artificialType="_id" __systemManaged="true" name="__id" type="string"/>
+<Field __index="0" __schemaType="{http://schemas.datacontract.org/2004/07/ServiceDesk}AccountDetails" __sourcePath="{http://schemas.datacontract.org/2004/07/ServiceDesk=ns1,http://tempuri.org/=ns0}/ns0:createAccountResponse/ns0:createAccountResult/ns1:AccountName" containerType="SINGLE" label="AccountName" name="AccountName" type="string"/>
+<Field __index="1" __schemaType="{http://schemas.datacontract.org/2004/07/ServiceDesk}AccountDetails" __sourcePath="{http://schemas.datacontract.org/2004/07/ServiceDesk=ns1,http://tempuri.org/=ns0}/ns0:createAccountResponse/ns0:createAccountResult/ns1:Domain" containerType="SINGLE" label="Domain" name="Domain" type="string"/>
+<Field __index="2" __schemaType="{http://schemas.datacontract.org/2004/07/ServiceDesk}AccountDetails" __sourcePath="{http://schemas.datacontract.org/2004/07/ServiceDesk=ns1,http://tempuri.org/=ns0}/ns0:createAccountResponse/ns0:createAccountResult/ns1:Email" containerType="SINGLE" label="Email" name="Email" type="string"/>
+<Field __index="3" __schemaType="{http://schemas.datacontract.org/2004/07/ServiceDesk}AccountDetails" __sourcePath="{http://schemas.datacontract.org/2004/07/ServiceDesk=ns1,http://tempuri.org/=ns0}/ns0:createAccountResponse/ns0:createAccountResult/ns1:Role" containerType="SINGLE" label="Role" name="Role" type="string"/>
+</Record>
+</Metadata>
+<Metadata __index="0" __referenceCounter="1" __sourcePath="{}/payload" _dataStructure="OBJECT" _id="__id" _type="Output" id="d57ebe64-feda-4605-98be-945bacad5864">
+<Record fieldDelimiter="," name="payload" recordDelimiter="\n\\|\r\n\\|\r" type="delimited">
+<Field __artificialType="_id" __systemManaged="true" name="__id" type="string"/>
+<Field __index="1" __sourcePath="{}/payload/accountName" containerType="SINGLE" label="accountName" name="accountName" type="string"/>
+<Field __index="0" __sourcePath="{}/payload/email" containerType="SINGLE" label="email" name="email" type="string"/>
+</Record>
+</Metadata>
+<Dictionary>
+<Entry id="DictionaryEntry0" input="true" name="inputPayload" output="false" type="object"/>
+<Entry id="DictionaryEntry1" input="false" name="outputPayload" output="true" type="object"/>
+</Dictionary>
+</Global>
+<Phase number="0">
+<Node enabled="enabled" guiName="Foreach 'ns0:createAccountResponse' -&gt; 'payload'" guiX="460" guiY="20" id="FOREACH_NS0_CREATE_ACCOUNT_RESPONSE_PAYLOAD" transformClass="com.mulesoft.datamapper.transform.MelRecordTransform" type="REFORMAT">
+<attr name="melScript"><![CDATA[//MEL
+//START -> DO NOT REMOVE
+output.__id = input.__id;
+//END -> DO NOT REMOVE
+output.accountName = input.AccountName;
+output.email = input.Email;
+]]></attr>
+</Node>
+<Node cacheInMemory="true" enabled="enabled" fileURL="dict:outputPayload" guiName="Map&lt;k,v&gt; WRITER" guiX="900" guiY="20" id="MAP_WRITER0" type="MAP_WRITER">
+<attr name="mapping"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+<payload xmlns:clover="http://www.cloveretl.com/ns/xmlmapping" clover:inPort="0">
+  <email>$0.email</email>
+  <accountName>$0.accountName</accountName>
+</payload>]]></attr>
+<attr name="_data_format"><![CDATA[MAP]]></attr>
+</Node>
+<Node charset="UTF-8" enabled="enabled" fileURL="dict:inputPayload" guiName="XML READER" guiX="20" guiY="20" id="XML_READER0" type="XML_READER">
+<attr name="mapping"><![CDATA[<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<Context namespacePaths="ns0=&quot;http://tempuri.org/&quot;" outPort="0" sequenceField="__id" xpath="/ns0:createAccountResponse">
+  <Mapping cloverField="AccountName" namespacePaths="ns1=&quot;http://schemas.datacontract.org/2004/07/ServiceDesk&quot;;ns0=&quot;http://tempuri.org/&quot;" trim="true" xpath="ns0:createAccountResult/ns1:AccountName"/>
+  <Mapping cloverField="Domain" namespacePaths="ns1=&quot;http://schemas.datacontract.org/2004/07/ServiceDesk&quot;;ns0=&quot;http://tempuri.org/&quot;" trim="true" xpath="ns0:createAccountResult/ns1:Domain"/>
+  <Mapping cloverField="Email" namespacePaths="ns1=&quot;http://schemas.datacontract.org/2004/07/ServiceDesk&quot;;ns0=&quot;http://tempuri.org/&quot;" trim="true" xpath="ns0:createAccountResult/ns1:Email"/>
+  <Mapping cloverField="Role" namespacePaths="ns1=&quot;http://schemas.datacontract.org/2004/07/ServiceDesk&quot;;ns0=&quot;http://tempuri.org/&quot;" trim="true" xpath="ns0:createAccountResult/ns1:Role"/>
+</Context>
+]]></attr>
+<attr name="_data_format"><![CDATA[XML]]></attr>
+<attr name="__metadata"><![CDATA[true]]></attr>
+</Node>
+<Edge debugMode="true" fromNode="FOREACH_NS0_CREATE_ACCOUNT_RESPONSE_PAYLOAD:0" guiBendpoints="" id="Edge1" inPort="Port 0 (in)" metadata="d57ebe64-feda-4605-98be-945bacad5864" outPort="Port 0 (out)" toNode="MAP_WRITER0:0"/>
+<Edge debugMode="true" fromNode="XML_READER0:0" guiBendpoints="" id="Edge0" inPort="Port 0 (in)" metadata="73990cac-864e-4929-bcb3-1db0fa5782c7" outPort="Port 0 (out)" toNode="FOREACH_NS0_CREATE_ACCOUNT_RESPONSE_PAYLOAD:0"/>
+</Phase>
+</Graph>

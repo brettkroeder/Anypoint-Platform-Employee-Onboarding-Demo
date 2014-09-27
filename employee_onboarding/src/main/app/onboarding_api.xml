@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/apikit" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:spring="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/apikit http://www.mulesoft.org/schema/mule/apikit/current/mule-apikit.xsd
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd" version="EE-3.5.0">
+    <apikit:config name="onboarding_api-config" raml="onboarding_api.raml" consoleEnabled="true" consolePath="console" doc:name="Router"/>
+    <apikit:mapping-exception-strategy name="onboarding_api-apiKitGlobalExceptionMapping">
+        <apikit:mapping statusCode="404">
+            <apikit:exception value="org.mule.module.apikit.exception.NotFoundException" />
+            <set-property propertyName="Content-Type" value="application/json" />
+            <set-payload value="{ &quot;message&quot;: &quot;Resource not found&quot; }" />
+        </apikit:mapping>
+        <apikit:mapping statusCode="405">
+            <apikit:exception value="org.mule.module.apikit.exception.MethodNotAllowedException" />
+            <set-property propertyName="Content-Type" value="application/json" />
+            <set-payload value="{ &quot;message&quot;: &quot;Method not allowed&quot; }" />
+        </apikit:mapping>
+        <apikit:mapping statusCode="415">
+            <apikit:exception value="org.mule.module.apikit.exception.UnsupportedMediaTypeException" />
+            <set-property propertyName="Content-Type" value="application/json" />
+            <set-payload value="{ &quot;message&quot;: &quot;Unsupported media type&quot; }" />
+        </apikit:mapping>
+        <apikit:mapping statusCode="406">
+            <apikit:exception value="org.mule.module.apikit.exception.NotAcceptableException" />
+            <set-property propertyName="Content-Type" value="application/json" />
+            <set-payload value="{ &quot;message&quot;: &quot;Not acceptable&quot; }" />
+        </apikit:mapping>
+        <apikit:mapping statusCode="400">
+            <apikit:exception value="org.mule.module.apikit.exception.BadRequestException" />
+            <set-property propertyName="Content-Type" value="application/json" />
+            <set-payload value="{ &quot;message&quot;: &quot;Bad request&quot; }" />
+        </apikit:mapping>
+    </apikit:mapping-exception-strategy>
+    <flow name="onboarding_api-main" doc:name="onboarding_api-main">
+        <http:inbound-endpoint  doc:name="HTTP" exchange-pattern="request-response" host="${http.host}" path="hr/onboarding/api" port="${http.port}"/>
+        <apikit:router config-ref="onboarding_api-config" doc:name="APIkit Router"/>
+        <set-property propertyName="Access-Control-Allow-Origin" value="*" doc:name="Property"/>
+        <exception-strategy ref="onboarding_api-apiKitGlobalExceptionMapping" doc:name="Reference Exception Strategy"/>
+    </flow>
+    <flow name="get:/employee/{id}:onboarding_api-config" doc:name="get:/employee/{id}:onboarding_api-config">
+        <http:outbound-endpoint exchange-pattern="request-response" host="${hris.host}" port="${hris.port}" path="hris/api/employee/#[id]" method="GET" doc:name="HTTP"/>
+        <object-to-string-transformer doc:name="Object to String"/>
+
+    </flow>
+    <flow name="get:/employees:onboarding_api-config" doc:name="get:/employees:onboarding_api-config">
+        <http:outbound-endpoint exchange-pattern="request-response" host="${hris.host}" port="${hris.port}" path="hris/api/employees" method="GET" doc:name="HTTP"/>
+        <object-to-string-transformer doc:name="Object to String"/>
+    </flow>
+    <flow name="get:/employees/department/{department}:onboarding_api-config" doc:name="get:/employees/department/{department}:onboarding_api-config">
+        <http:outbound-endpoint exchange-pattern="request-response" host="${hris.host}" port="${hris.port}" path="hris/api/employees/department/#[department]" method="GET" doc:name="HTTP"/>
+        <object-to-string-transformer doc:name="Object to String"/>
+        
+    </flow>
+    <flow name="post:/employee/onboard:onboarding_api-config" doc:name="post:/employee/onboard:onboarding_api-config">
+        <http:outbound-endpoint exchange-pattern="request-response" host="${http.host}" port="${http.port}" path="hr/onboarding" method="POST" doc:name="HTTP"/>
+        <object-to-string-transformer doc:name="Object to String"/>
+
+    </flow>
+</mule>

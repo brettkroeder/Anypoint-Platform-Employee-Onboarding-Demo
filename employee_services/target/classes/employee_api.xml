@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" xmlns:data-mapper="http://www.mulesoft.org/schema/mule/ee/data-mapper" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/apikit" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:spring="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/apikit http://www.mulesoft.org/schema/mule/apikit/current/mule-apikit.xsd
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/data-mapper http://www.mulesoft.org/schema/mule/ee/data-mapper/current/mule-data-mapper.xsd
+http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd" version="EE-3.5.0">
+    <apikit:config name="employee_api-config" raml="employee_api.raml" consoleEnabled="true" consolePath="console" doc:name="Router"/>
+    <apikit:mapping-exception-strategy name="employee_api-apiKitGlobalExceptionMapping">
+        <apikit:mapping statusCode="404">
+            <apikit:exception value="org.mule.module.apikit.exception.NotFoundException" />
+            <set-property propertyName="Content-Type" value="application/json" />
+            <set-payload value="{ &quot;message&quot;: &quot;Resource not found&quot; }" />
+        </apikit:mapping>
+        <apikit:mapping statusCode="405">
+            <apikit:exception value="org.mule.module.apikit.exception.MethodNotAllowedException" />
+            <set-property propertyName="Content-Type" value="application/json" />
+            <set-payload value="{ &quot;message&quot;: &quot;Method not allowed&quot; }" />
+        </apikit:mapping>
+        <apikit:mapping statusCode="415">
+            <apikit:exception value="org.mule.module.apikit.exception.UnsupportedMediaTypeException" />
+            <set-property propertyName="Content-Type" value="application/json" />
+            <set-payload value="{ &quot;message&quot;: &quot;Unsupported media type&quot; }" />
+        </apikit:mapping>
+        <apikit:mapping statusCode="406">
+            <apikit:exception value="org.mule.module.apikit.exception.NotAcceptableException" />
+            <set-property propertyName="Content-Type" value="application/json" />
+            <set-payload value="{ &quot;message&quot;: &quot;Not acceptable&quot; }" />
+        </apikit:mapping>
+        <apikit:mapping statusCode="400">
+            <apikit:exception value="org.mule.module.apikit.exception.BadRequestException" />
+            <set-property propertyName="Content-Type" value="application/json" />
+            <set-payload value="{ &quot;message&quot;: &quot;Bad request&quot; }" />
+        </apikit:mapping>
+    </apikit:mapping-exception-strategy>
+    <data-mapper:config name="List_Map__To_JSON" transformationGraphPath="list_map__to_json.grf" doc:name="List_Map__To_JSON"/>
+    <data-mapper:config name="List_Map__To_JSON_1" transformationGraphPath="list_map__to_json_1.grf" doc:name="List_Map__To_JSON_1"/>
+    <data-mapper:config name="List_Map__To_JSON_1List_Map__To_JSON_2" transformationGraphPath="list_map__to_json_2.grf" doc:name="List_Map__To_JSON_1List_Map__To_JSON_2"/>
+    <data-mapper:config name="JSON_To_Map" transformationGraphPath="json_to_map_1.grf" doc:name="JSON_To_Map"/>
+    <data-mapper:config name="JSON_To_Map_1" transformationGraphPath="json_to_map_2.grf" doc:name="JSON_To_Map_1"/>
+    <db:mysql-config name="MySQL_Configuration" host="www.anypoint-workshop.com" port="3306" user="hris" password="Mule1379" database="hris" doc:name="MySQL Configuration"/>
+    <flow name="employee_api-main" doc:name="employee_api-main">
+        <http:inbound-endpoint address="http://${http.host}:${http.port}/hris/api" doc:name="HTTP" exchange-pattern="request-response"/>
+        <apikit:router config-ref="employee_api-config" doc:name="APIkit Router"/>
+        <exception-strategy ref="employee_api-apiKitGlobalExceptionMapping" doc:name="Reference Exception Strategy"/>
+    </flow>
+    <flow name="put:/employees:employee_api-config" doc:name="put:/employees:employee_api-config">
+        <data-mapper:transform config-ref="JSON_To_Map_1" doc:name="JSON To Map"/>
+        <db:update config-ref="MySQL_Configuration" doc:name="Database" target="result">
+            <db:parameterized-query><![CDATA[UPDATE employees
+SET first_name= #[payload['first_name']],
+	last_name= #[payload['last_name']],
+	department= #[payload['department']],
+	job_title=#[payload['job_title']], 
+	start_date=#[payload['start_date']],
+	employee_type=#[payload['employee_type']],
+	status=#[payload['status']],
+	email=#[payload['email']]
+WHERE
+	employee_id = #[payload['employee_id']]]]></db:parameterized-query>
+        </db:update>
+        <tracking:custom-event event-name="Employee Updated" doc:name="Employee Updated in HRIS">
+ 			<tracking:meta-data key="name" value="#[payload.first_name + ' ' +  payload.last_name]"/>
+            <tracking:meta-data key="department" value="#[payload.department]"/>
+            <tracking:meta-data key="employee_type" value="#[payload.employee_type]"/>               
+        </tracking:custom-event>
+        <set-payload value="{ &quot;message&quot;: &quot;succesful&quot; }" doc:name="Set Payload"/>
+
+    </flow>
+    <flow name="delete:/employee/{id}:employee_api-config" doc:name="delete:/employee/{id}:employee_api-config">
+        <set-payload value="#[NullPayload.getInstance()]" doc:name="Set Payload"/>
+        <db:delete config-ref="MySQL_Configuration" doc:name="Database">
+            <db:parameterized-query><![CDATA[DELETE from employees
+WHERE
+	employee_id = #[id]]]></db:parameterized-query>
+        </db:delete>
+        <tracking:custom-event event-name="Employee Deleted" doc:name="Employee Deleted from HRIS">
+ 			<tracking:meta-data key="Employee ID" value="#[id]"/>
+            <tracking:meta-data key="Deleted" value="#[payload]"/>
+               
+        </tracking:custom-event>
+        <set-payload value="{ &quot;message&quot;: &quot;succesful&quot; }" doc:name="Set Payload"/>
+    </flow>
+    <flow name="get:/employee/{id}:employee_api-config" doc:name="get:/employee/{id}:employee_api-config">
+        <set-payload value="[&#x9;&#xD;&#xA;  {&#x9;&#xD;&#xA;    &quot;job_title&quot;:&quot;Programmer&quot;,&#xD;&#xA;    &quot;email&quot;:&quot;daustin@cool-mule.com&quot;,&#xD;&#xA;    &quot;employee_type&quot;:&quot;Office&quot;,&#xD;&#xA;    &quot;status&quot;:&quot;Active&quot;,&#xD;&#xA;    &quot;start_date&quot;:&quot;2001-06-24&quot;,&#xD;&#xA;    &quot;last_name&quot;:&quot;Austin&quot;,&#xD;&#xA;    &quot;first_name&quot;:&quot;David&quot;,&#xD;&#xA;    &quot;employee_id&quot;:&quot;100&quot;,&#xD;&#xA;    &quot;department&quot;:&quot;IT&quot;&#xD;&#xA;  }&#xD;&#xA;]" doc:name="Set Payload"/>
+        <db:select config-ref="MySQL_Configuration" doc:name="Database">
+            <db:parameterized-query><![CDATA[select * from employees where employee_id = #[id]]]></db:parameterized-query>
+        </db:select>
+        <tracking:custom-event event-name="Employee Retrieved" doc:name="Employee Retrieved from HRIS">
+ 			<tracking:meta-data key="name" value="#[payload[0].first_name + ' ' +  payload[0].last_name]"/>
+            <tracking:meta-data key="department" value="#[payload[0].department]"/>
+            <tracking:meta-data key="employee_type" value="#[payload[0].employee_type]"/>               
+        </tracking:custom-event>
+        <data-mapper:transform config-ref="List_Map__To_JSON_1List_Map__To_JSON_2" doc:name="List&lt;Map&gt; To JSON"/>
+    </flow>
+    <flow name="get:/employees:employee_api-config" doc:name="get:/employees:employee_api-config">
+        <set-payload value="[&#x9;&#xD;&#xA;  {&#x9;&#xD;&#xA;    &quot;job_title&quot;:&quot;Programmer&quot;,&#xD;&#xA;    &quot;email&quot;:&quot;daustin@cool-mule.com&quot;,&#xD;&#xA;    &quot;employee_type&quot;:&quot;Office&quot;,&#xD;&#xA;    &quot;status&quot;:&quot;Active&quot;,&#xD;&#xA;    &quot;start_date&quot;:&quot;2001-06-24&quot;,&#xD;&#xA;    &quot;last_name&quot;:&quot;Austin&quot;,&#xD;&#xA;    &quot;first_name&quot;:&quot;David&quot;,&#xD;&#xA;    &quot;employee_id&quot;:&quot;100&quot;,&#xD;&#xA;    &quot;department&quot;:&quot;IT&quot;&#xD;&#xA;  }&#xD;&#xA;]" doc:name="Set Payload"/>
+        <db:select config-ref="MySQL_Configuration" doc:name="Database">
+            <db:parameterized-query><![CDATA[select * from employees]]></db:parameterized-query>
+        </db:select>
+        <tracking:custom-event event-name="Employee List Retrieved" doc:name="Employee List Retrieved from HRIS">
+            <tracking:meta-data key="Employees" value="#[payload.size()]"/>
+ 		</tracking:custom-event>
+        <data-mapper:transform config-ref="List_Map__To_JSON" doc:name="List&lt;Map&gt; To JSON"/>
+    </flow>
+    <flow name="get:/employees/department/{department}:employee_api-config" doc:name="get:/employees/department/{department}:employee_api-config">
+        <set-payload value="{&#xD;&#xA;                &quot;description&quot;: &quot;Employees&quot;,&#xD;&#xA;                &quot;type&quot;: &quot;array&quot;,&#xD;&#xA;                &quot;items&quot;: {&#xD;&#xA;                  &quot;description&quot;: &quot;Employee record&quot;,&#xD;&#xA;                  &quot;type&quot;: &quot;object&quot;,&#xD;&#xA;                  &quot;properties&quot;: {&#xD;&#xA;                    &quot;job_title&quot;: {&#xD;&#xA;                      &quot;type&quot;: &quot;string&quot;,&#xD;&#xA;                      &quot;description&quot;: &quot;Job title, example, Manager&quot;,&#xD;&#xA;                      &quot;required&quot;: true&#xD;&#xA;                    },&#xD;&#xA;                    &quot;email&quot;: {&#xD;&#xA;                      &quot;type&quot;: &quot;string&quot;,&#xD;&#xA;                      &quot;description&quot;: &quot;Email address&quot;,&#xD;&#xA;                      &quot;required&quot;: true&#xD;&#xA;                    },&#xD;&#xA;                    &quot;employee_type&quot;: {&#xD;&#xA;                      &quot;type&quot;: &quot;string&quot;,&#xD;&#xA;                      &quot;description&quot;: &quot;Employee type - Remote or Office&quot;,&#xD;&#xA;                      &quot;required&quot;: true&#xD;&#xA;                    },&#xD;&#xA;                    &quot;status&quot;: {&#xD;&#xA;                      &quot;type&quot;: &quot;string&quot;,&#xD;&#xA;                      &quot;description&quot;: &quot;Status&quot;,&#xD;&#xA;                      &quot;required&quot;: true&#xD;&#xA;                    },&#xD;&#xA;                    &quot;start_date&quot;: {&#xD;&#xA;                      &quot;type&quot;: &quot;string&quot;,&#xD;&#xA;                      &quot;description&quot;: &quot;Start date&quot;,&#xD;&#xA;                      &quot;required&quot;: true&#xD;&#xA;                    },&#xD;&#xA;                    &quot;last_name&quot;: {&#xD;&#xA;                      &quot;type&quot;: &quot;string&quot;,&#xD;&#xA;                      &quot;description&quot;: &quot;Employee last name&quot;,&#xD;&#xA;                      &quot;required&quot;: true&#xD;&#xA;                    },&#xD;&#xA;                    &quot;first_name&quot;: {&#xD;&#xA;                      &quot;type&quot;: &quot;string&quot;,&#xD;&#xA;                      &quot;description&quot;: &quot;Employee first name&quot;,&#xD;&#xA;                      &quot;required&quot;: true&#xD;&#xA;                    },      &#xD;&#xA;                    &quot;employee_id&quot;: {&#xD;&#xA;                      &quot;type&quot;: &quot;string&quot;,&#xD;&#xA;                      &quot;description&quot;: &quot;Employee ID&quot;,&#xD;&#xA;                      &quot;required&quot;: true&#xD;&#xA;                    },    &#xD;&#xA;                    &quot;department&quot;: {&#xD;&#xA;                      &quot;type&quot;: &quot;string&quot;,&#xD;&#xA;                      &quot;description&quot;: &quot;Department&quot;,&#xD;&#xA;                      &quot;required&quot;: true&#xD;&#xA;                    }                                                                                                                                         &#xD;&#xA;                  }&#xD;&#xA;                }&#xD;&#xA;              }" doc:name="Set Payload"/>
+        <db:select config-ref="MySQL_Configuration" doc:name="Database">
+            <db:parameterized-query><![CDATA[select * from employees where department = #[department]]]></db:parameterized-query>
+        </db:select>
+        <tracking:custom-event event-name="Department List Retrieved" doc:name="Department List Retrieved from HRIS">
+            <tracking:meta-data key="Employees" value="#[payload.size()]"/>
+            <tracking:meta-data key="Department" value="#[department]"/>
+ 		</tracking:custom-event>
+        <data-mapper:transform config-ref="List_Map__To_JSON_1" doc:name="List&lt;Map&gt; To JSON"/>
+    </flow>
+
+    <flow name="post:/employees:employee_api-config" doc:name="post:/employees:employee_api-config">
+        <data-mapper:transform config-ref="JSON_To_Map" doc:name="JSON To Map"/>
+        <db:insert config-ref="MySQL_Configuration" doc:name="Database" target="result">
+            <db:parameterized-query><![CDATA[INSERT INTO employees
+           (first_name, last_name, department, job_title, start_date, employee_type, status, email)
+     VALUES
+           ( 
+             #[payload['first_name']]
+           , #[payload['last_name']]
+           , #[payload['department']]
+           , #[payload['job_title']]
+           , #[payload['start_date']]
+           , #[payload['employee_type']]
+           , #[payload['status']]
+           , #[payload['email']]
+           )]]></db:parameterized-query>
+        </db:insert>
+        <tracking:custom-event event-name="Employee Registered" doc:name="Employee Registered to HRIS">
+            <tracking:meta-data key="name" value="#[payload.first_name + ' ' +  payload.last_name]"/>
+            <tracking:meta-data key="department" value="#[payload.department]"/>
+            <tracking:meta-data key="employee_type" value="#[payload.employee_type]"/>
+        </tracking:custom-event>
+        <set-payload value="{ &quot;message&quot;: &quot;succesful&quot; }" doc:name="Set Payload"/>
+
+    </flow>
+</mule>

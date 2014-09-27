@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph __version="3.5.0" author="Administrator" created="Fri May 23 13:41:52 EDT 2014" description="JSON To Map" guiVersion="3.4.3.P" id="1400875876474" licenseCode="Unlicensed" licenseType="Unknown" modified="Fri May 23 13:41:52 EDT 2014" modifiedBy="Administrator" name="JSON_To_Map_1" preview-file="${Project_Home}/src/main/api/employee.json" revision="1.0" showComponentDetails="false">
+<Global>
+<Metadata __index="0" __referenceCounter="1" __sourcePath="{}/array" _dataStructure="SINGLE_DIMENSIONAL_COLLECTION" _id="__id" _type="Input" id="df083504-3fac-42ab-8f61-1398b354f3ec">
+<Record fieldDelimiter="," name="array" recordDelimiter="\n\\|\r\n\\|\r" type="delimited">
+<Field __artificialType="_id" __systemManaged="true" name="__id" type="string"/>
+<Field __index="0" __sourcePath="{}/array/job_x005ftitle" containerType="SINGLE" label="job_title" name="job_title" type="string"/>
+<Field __index="1" __sourcePath="{}/array/email" containerType="SINGLE" label="email" name="email" type="string"/>
+<Field __index="2" __sourcePath="{}/array/employee_x005ftype" containerType="SINGLE" label="employee_type" name="employee_type" type="string"/>
+<Field __index="3" __sourcePath="{}/array/status" containerType="SINGLE" label="status" name="status" type="string"/>
+<Field __index="4" __sourcePath="{}/array/start_x005fdate" containerType="SINGLE" label="start_date" name="start_date" type="string"/>
+<Field __index="5" __sourcePath="{}/array/last_x005fname" containerType="SINGLE" label="last_name" name="last_name" type="string"/>
+<Field __index="6" __sourcePath="{}/array/first_x005fname" containerType="SINGLE" label="first_name" name="first_name" type="string"/>
+<Field __index="7" __sourcePath="{}/array/employee_x005fid" containerType="SINGLE" label="employee_id" name="employee_id" type="string"/>
+<Field __index="8" __sourcePath="{}/array/department" containerType="SINGLE" label="department" name="department" type="string"/>
+</Record>
+</Metadata>
+<Metadata __index="0" __referenceCounter="1" __sourcePath="{}/Map" _dataStructure="OBJECT" _id="__id" _type="Output" id="09340c79-dd82-4521-b643-ce2e7193e3dd">
+<Record fieldDelimiter="," name="Map" recordDelimiter="\n\\|\r\n\\|\r" type="delimited">
+<Field __artificialType="_id" __systemManaged="true" name="__id" type="string"/>
+<Field __implementationClass="java.lang.String" __index="3" __sourcePath="{}/Map/department" containerType="SINGLE" label="department" name="department" type="string"/>
+<Field __implementationClass="java.lang.String" __index="2" __sourcePath="{}/Map/email" containerType="SINGLE" label="email" name="email" type="string"/>
+<Field __implementationClass="java.lang.String" __index="8" __sourcePath="{}/Map/employee_x005fid" containerType="SINGLE" label="employee_id" name="employee_id" type="string"/>
+<Field __implementationClass="java.lang.String" __index="6" __sourcePath="{}/Map/employee_x005ftype" containerType="SINGLE" label="employee_type" name="employee_type" type="string"/>
+<Field __implementationClass="java.lang.String" __index="0" __sourcePath="{}/Map/first_x005fname" containerType="SINGLE" label="first_name" name="first_name" type="string"/>
+<Field __implementationClass="java.lang.String" __index="4" __sourcePath="{}/Map/job_x005ftitle" containerType="SINGLE" label="job_title" name="job_title" type="string"/>
+<Field __implementationClass="java.lang.String" __index="5" __sourcePath="{}/Map/last_x005fname" containerType="SINGLE" label="last_name" name="last_name" type="string"/>
+<Field __implementationClass="java.lang.String" __index="7" __sourcePath="{}/Map/start_x005fdate" containerType="SINGLE" label="start_date" name="start_date" type="string"/>
+<Field __implementationClass="java.lang.String" __index="1" __sourcePath="{}/Map/status" containerType="SINGLE" label="status" name="status" type="string"/>
+</Record>
+</Metadata>
+<Dictionary>
+<Entry id="DictionaryEntry0" input="true" name="inputPayload" output="false" type="object"/>
+<Entry id="DictionaryEntry1" input="false" name="outputPayload" output="true" type="object"/>
+</Dictionary>
+</Global>
+<Phase number="0">
+<Node enabled="enabled" guiName="Foreach 'array' -&gt; 'Map'" guiX="460" guiY="20" id="FOREACH_ARRAY_MAP" transformClass="com.mulesoft.datamapper.transform.MelRecordTransform" type="REFORMAT">
+<attr name="melScript"><![CDATA[//MEL
+//START -> DO NOT REMOVE
+output.__id = input.__id;
+//END -> DO NOT REMOVE
+output.job_title = input.job_title;
+output.email = input.email;
+output.employee_type = input.employee_type;
+output.status = input.status;
+output.start_date = input.start_date;
+output.last_name = input.last_name;
+output.first_name = input.first_name;
+output.employee_id = input.employee_id;
+output.department = input.department;
+]]></attr>
+</Node>
+<Node charset="UTF-8" enabled="enabled" fileURL="dict:inputPayload" guiName="JSON READER" guiX="20" guiY="20" id="JSON_READER0" type="JSON_READER">
+<attr name="mapping"><![CDATA[<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<Context xpath="/root">
+  <Context outPort="0" sequenceField="__id" xpath="array">
+    <Mapping cloverField="job_title" trim="true" xpath="job_x005ftitle"/>
+    <Mapping cloverField="email" trim="true" xpath="email"/>
+    <Mapping cloverField="employee_type" trim="true" xpath="employee_x005ftype"/>
+    <Mapping cloverField="status" trim="true" xpath="status"/>
+    <Mapping cloverField="start_date" trim="true" xpath="start_x005fdate"/>
+    <Mapping cloverField="last_name" trim="true" xpath="last_x005fname"/>
+    <Mapping cloverField="first_name" trim="true" xpath="first_x005fname"/>
+    <Mapping cloverField="employee_id" trim="true" xpath="employee_x005fid"/>
+    <Mapping cloverField="department" trim="true" xpath="department"/>
+  </Context>
+</Context>
+]]></attr>
+<attr name="_data_format"><![CDATA[JSON]]></attr>
+<attr name="jsonSchemaURL"><![CDATA[.\src\main\api\employee.json]]></attr>
+</Node>
+<Node cacheInMemory="true" enabled="enabled" fileURL="dict:outputPayload" guiName="Map&lt;k,v&gt; WRITER" guiX="900" guiY="20" id="MAP_WRITER0" type="MAP_WRITER">
+<attr name="mapping"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+<Map xmlns:clover="http://www.cloveretl.com/ns/xmlmapping" clover:inPort="0">
+  <clover:element clover:name="first_name" clover:dataType="java.lang.String">$0.first_name</clover:element>
+  <status clover:dataType="java.lang.String">$0.status</status>
+  <email clover:dataType="java.lang.String">$0.email</email>
+  <department clover:dataType="java.lang.String">$0.department</department>
+  <clover:element clover:name="job_title" clover:dataType="java.lang.String">$0.job_title</clover:element>
+  <clover:element clover:name="last_name" clover:dataType="java.lang.String">$0.last_name</clover:element>
+  <clover:element clover:name="employee_type" clover:dataType="java.lang.String">$0.employee_type</clover:element>
+  <clover:element clover:name="start_date" clover:dataType="java.lang.String">$0.start_date</clover:element>
+  <clover:element clover:name="employee_id" clover:dataType="java.lang.String">$0.employee_id</clover:element>
+</Map>]]></attr>
+<attr name="_data_format"><![CDATA[MAP]]></attr>
+<attr name="__metadata"><![CDATA[true]]></attr>
+</Node>
+<Edge debugMode="true" fromNode="FOREACH_ARRAY_MAP:0" guiBendpoints="" id="Edge1" inPort="Port 0 (in)" metadata="09340c79-dd82-4521-b643-ce2e7193e3dd" outPort="Port 0 (out)" toNode="MAP_WRITER0:0"/>
+<Edge debugMode="true" fromNode="JSON_READER0:0" guiBendpoints="" id="Edge0" inPort="Port 0 (in)" metadata="df083504-3fac-42ab-8f61-1398b354f3ec" outPort="Port 0 (out)" toNode="FOREACH_ARRAY_MAP:0"/>
+</Phase>
+</Graph>

@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ws="http://www.mulesoft.org/schema/mule/ws" xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:sfdc="http://www.mulesoft.org/schema/mule/sfdc" xmlns:smtp="http://www.mulesoft.org/schema/mule/smtp" xmlns:twitter="http://www.mulesoft.org/schema/mule/twitter" xmlns:data-mapper="http://www.mulesoft.org/schema/mule/ee/data-mapper" xmlns:cxf="http://www.mulesoft.org/schema/mule/cxf" xmlns:jms="http://www.mulesoft.org/schema/mule/jms" xmlns:jdbc-ee="http://www.mulesoft.org/schema/mule/ee/jdbc" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" xmlns:vm="http://www.mulesoft.org/schema/mule/vm" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:spring="http://www.springframework.org/schema/beans" version="EE-3.5.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/jdbc http://www.mulesoft.org/schema/mule/ee/jdbc/current/mule-jdbc-ee.xsd
+http://www.mulesoft.org/schema/mule/vm http://www.mulesoft.org/schema/mule/vm/current/mule-vm.xsd
+http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd
+http://www.mulesoft.org/schema/mule/cxf http://www.mulesoft.org/schema/mule/cxf/current/mule-cxf.xsd
+http://www.mulesoft.org/schema/mule/ee/data-mapper http://www.mulesoft.org/schema/mule/ee/data-mapper/current/mule-data-mapper.xsd
+http://www.mulesoft.org/schema/mule/jms http://www.mulesoft.org/schema/mule/jms/current/mule-jms.xsd
+http://www.mulesoft.org/schema/mule/sfdc http://www.mulesoft.org/schema/mule/sfdc/current/mule-sfdc.xsd
+http://www.mulesoft.org/schema/mule/smtp http://www.mulesoft.org/schema/mule/smtp/current/mule-smtp.xsd
+http://www.mulesoft.org/schema/mule/twitter http://www.mulesoft.org/schema/mule/twitter/2.4/mule-twitter.xsd
+http://www.mulesoft.org/schema/mule/ws http://www.mulesoft.org/schema/mule/ws/current/mule-ws.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
+    <jdbc-ee:connector name="MySQL_Database" dataSource-ref="MySQL_Data_Source" validateConnections="true" queryTimeout="-1" pollingFrequency="0" doc:name="Database"/>
+    <jdbc-ee:mysql-data-source name="MySQL_Data_Source" user="hris" password="Mule1379" url="jdbc:mysql://${internal.host}:${db.port}/hris" transactionIsolation="UNSPECIFIED" doc:name="MySQL Data Source"/>
+    <jms:activemq-connector name="Active_MQ" brokerURL="tcp://${internal.host}:${jms.port}" validateConnections="true" doc:name="Active MQ"/>
+    <data-mapper:config name="map_to_xml_grf" transformationGraphPath="map_to_xml.grf" doc:name="DataMapper"/>
+    <sfdc:config name="Salesforce" username="${sfdc.username}" password="${sfdc.password}" securityToken="${sfdc.securityToken}" doc:name="Salesforce">
+        <sfdc:connection-pooling-profile initialisationPolicy="INITIALISE_ONE" exhaustedAction="WHEN_EXHAUSTED_GROW"/>
+    </sfdc:config>
+    <data-mapper:config name="xml_to_salesforce_grf" transformationGraphPath="xml_to_salesforce.grf" doc:name="DataMapper"/>
+    <smtp:gmail-connector name="Gmail" validateConnections="true" doc:name="Gmail"/>
+    <twitter:config name="Twitter" accessKey="${twitter.accessKey}" accessSecret="${twitter.accessSecret}" consumerKey="${twitter.consumerKey}" consumerSecret="${twitter.consumerSecret}" doc:name="Twitter">
+        <twitter:connection-pooling-profile initialisationPolicy="INITIALISE_ONE" exhaustedAction="WHEN_EXHAUSTED_GROW"/>
+    </twitter:config>
+    <ws:consumer-config name="Web_Service_Consumer" wsdlLocation="http://54.83.33.80/ServiceDesk/AccountsService.svc?wsdl" service="AccountsService" port="BasicHttpBinding_IAccountsService" serviceAddress="http://${accountService.host}/ServiceDesk/AccountsService.svc" doc:name="Web Service Consumer"/>
+    <data-mapper:config name="map_to_xml_createaccount_" transformationGraphPath="map_to_xml_createaccount_.grf" doc:name="map_to_xml_createaccount_"/>
+    <data-mapper:config name="xml_createaccountresponse__to_map" transformationGraphPath="xml_createaccountresponse__to_map.grf" doc:name="xml_createaccountresponse__to_map"/>
+    <db:mysql-config name="MySQL_Configuration" host="${db.host}" port="${db.port}" user="${db.user}" password="${db.password}" database="${db.database}" doc:name="MySQL Configuration"/>
+    <data-mapper:config name="Map_To_JSON" transformationGraphPath="map_to_json.grf" doc:name="Map_To_JSON"/>
+    <flow name="Employee_OnboardingFlow1" doc:name="Employee_OnboardingFlow1" tracking:enable-default-events="true">
+        <http:inbound-endpoint exchange-pattern="request-response" host="${http.host}" port="${http.port}" path="hr/onboarding" doc:name="HTTP"/>
+        <http:body-to-parameter-map-transformer doc:name="Get Request"/>
+        <tracking:custom-event event-name="Onboarding Requested" doc:name="Onboarding Requested">
+            <tracking:meta-data key="EmployeeName" value="#[payload.first_name + &quot; &quot; + payload.last_name]"/>
+            <tracking:meta-data key="Department" value="#[payload.department]"/>
+            <tracking:meta-data key="EmployeeType" value="#[payload.employee_type]"/>
+        </tracking:custom-event>
+        <async doc:name="Async">
+            <data-mapper:transform config-ref="Map_To_JSON" doc:name="Map To JSON"/>
+            <http:outbound-endpoint exchange-pattern="request-response" host="${hris.host}" port="${hris.port}" path="hris/api/employees" method="POST" mimeType="application/json" doc:name="HRIS Employee Creation Service"/>
+        </async>
+        <message-properties-transformer doc:name="Message Properties">
+            <add-message-property key="reference_number" value="#[Math.round(Math.random()*100000)]"/>
+            <add-message-property key="employee_type" value="#[payload.employee_type]"/>
+            <add-message-property key="department" value="#[payload.department]"/>
+            <add-message-property key="name" value="#[payload.first_name + &quot; &quot; + payload.last_name]"/>
+        </message-properties-transformer>
+        <vm:outbound-endpoint exchange-pattern="one-way" path="it/services" doc:name="Provision IT Services"/>
+        <set-payload value="{ &quot;employeeName&quot;: &quot;#[message.outboundProperties['name']]&quot;, &quot;department&quot;:&quot;#[message.outboundProperties['department']]&quot;, &quot;referenceNumber&quot;: &quot;#[message.outboundProperties['reference_number']]&quot;}" doc:name="Create JSON Acknowledgement"/>
+        <http:response-builder contentType="application/json" doc:name="Set Response">
+            <http:header name="Access-Control-Allow-Origin" value="*"/>
+        </http:response-builder>
+    </flow>
+    <flow name="Service_Orchestration" doc:name="Service_Orchestration" tracking:enable-default-events="true">
+        <vm:inbound-endpoint exchange-pattern="one-way" path="it/services" doc:name="Provision IT Services"/>
+        <enricher doc:name="Message Enricher">
+            <flow-ref name="ServiceDesk_WebService_Client" doc:name="Provision IT Accounts"/>
+            <enrich source="#[payload.email]" target="#[message.outboundProperties.email]"/>
+            <enrich source="#[payload.accountName]" target="#[message.outboundProperties.username]"/>
+        </enricher>
+        <data-mapper:transform config-ref="map_to_xml_grf" doc:name="Map to XML">
+            <data-mapper:input-arguments>
+                <data-mapper:input-argument key="email">#[message.outboundProperties.email]</data-mapper:input-argument>
+                <data-mapper:input-argument key="employee_id">#[message.inboundProperties.reference_number]</data-mapper:input-argument>
+                <data-mapper:input-argument key="username">#[message.outboundProperties.username]</data-mapper:input-argument>
+            </data-mapper:input-arguments>
+        </data-mapper:transform>
+        <choice doc:name="Choice">
+            <when expression="message.inboundProperties.employee_type == 'Remote'">
+                <jms:outbound-endpoint queue="MobileEquipmentQueue" connector-ref="Active_MQ" doc:name="Mobile Equipment Queue"/>
+            </when>
+            <otherwise>
+                <jms:outbound-endpoint queue="DeskAllocationQueue" connector-ref="Active_MQ" doc:name="Desk Allocation Queue"/>
+            </otherwise>
+        </choice>
+        <message-properties-transformer doc:name="Message Properties">
+            <add-message-property key="department" value="#[message.inboundProperties.department]"/>
+            <add-message-property key="name" value="#[message.inboundProperties.name]"/>
+            <add-message-property key="employee_type" value="#[message.inboundProperties.employee_type]"/>
+        </message-properties-transformer>
+        <vm:outbound-endpoint exchange-pattern="one-way" path="it/cloud" doc:name="Provision Cloud Services"/>
+    </flow>
+    <sub-flow name="ServiceDesk_WebService_Client" doc:name="ServiceDesk_WebService_Client">
+        <data-mapper:transform config-ref="map_to_xml_createaccount_" doc:name="Map To Xml"/>
+        <ws:consumer config-ref="Web_Service_Consumer" operation="createAccount" doc:name="Web Service Consumer"/>
+        <data-mapper:transform config-ref="xml_createaccountresponse__to_map" doc:name="Xml To Map"/>
+    </sub-flow>
+    <flow name="Cloud_Connectivity" doc:name="Cloud_Connectivity" tracking:enable-default-events="true">
+        <vm:inbound-endpoint exchange-pattern="one-way" path="it/cloud" doc:name="Provision Cloud Services"/>
+        <choice doc:name="Choice">
+            <when expression="#[message.inboundProperties.department == 'Sales' || message.inboundProperties.department == 'Support' ]">
+                <data-mapper:transform config-ref="xml_to_salesforce_grf" doc:name="XML to Salesforce"/>
+                <sfdc:create-single config-ref="Salesforce" type="User" doc:name="Create Salesforce User">
+                    <sfdc:object ref="#[payload]"/>
+                </sfdc:create-single>
+                <logger message="SalesForce Output: #[payload]" level="INFO" doc:name="Log Salesforce Output"/>
+            </when>
+            <otherwise>
+                <logger message="No SalesForce account needed for #[message.inboundProperties.department] employees." level="INFO" doc:name="No Salesforce Required "/>
+            </otherwise>
+        </choice>
+        <set-payload value="Welcome to #MuleSoft #Connect14, #[message.inboundProperties.name]" doc:name="Set Payload"/>
+        <smtp:outbound-endpoint responseTimeout="10000"  doc:name="SMTP" from="${smtp.from}" host="${smtp.host}" password="${smtp.password}" port="${smtp.port}" to="${smtp.to}" user="${smtp.user}" connector-ref="Gmail" subject="#[payload]"/>
+        <twitter:update-status config-ref="Twitter" status="#[payload]" doc:name="Twitter"/>
+        <tracking:custom-event event-name="Onboarding Complete" doc:name="Onboarding Complete">
+            <tracking:meta-data key="EmployeeName" value="#[message.inboundProperties.name]"/>
+            <tracking:meta-data key="Department" value="#[message.inboundProperties.department]"/>
+            <tracking:meta-data key="EmployeeType" value="#[message.inboundProperties.employee_type]"/>
+        </tracking:custom-event>
+    </flow>
+</mule>

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<mule-project xmlns="http://www.mulesoft.com/tooling/project" runtimeId="org.mule.tooling.server.3.5.1.ee" schemaVersion="3.5.0.0">
+    <name>employee_services</name>
+    <description>Employee Onboarding Integration Project</description>
+    <muleExtension name="Salesforce" qualifier="org.mule.tooling.ui.contribution.sfdc"/>
+    <muleExtension name="Twitter" qualifier="org.mule.tooling.ui.contribution.twitter"/>
+    <muleExtension name="APIkit" qualifier="org.mule.tooling.apikit"/>
+    <muleExtension name="APIkit" qualifier="org.mule.tooling.apikit"/>
+    <muleExtension name="APIkit" qualifier="org.mule.tooling.apikit"/>
+    <muleExtension name="APIkit" qualifier="org.mule.tooling.apikit"/>
+    <muleExtension name="APIkit" qualifier="org.mule.tooling.apikit"/>
+</mule-project>
